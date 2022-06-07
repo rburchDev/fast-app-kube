@@ -1,6 +1,6 @@
 import asyncio
-from app.services.rabbitmq.rabb_conn import Broker
-from app.logger import Log
+from src.services.rabbitmq.rabb_conn import Broker
+from src.logger import Log
 
 rabbitmq = Broker()
 log = Log(name="Consume")

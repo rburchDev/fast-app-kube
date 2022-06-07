@@ -2,18 +2,18 @@
 deployment:
   # image is the sub-root of deployment for the values to be set under image in the deployment.yaml file
   image:
-    # consumer is the image for consumer.py
+    # consumer is the image for consume.py
     consumer: "artifactory.charterlab.com/naas-eagles-docker-local/fast/rabbitmq/rabbitmq-consumer"
-    # consumer is the image for publisher.py
+    # publisher is the image for publish.py
     publisher: "artifactory.charterlab.com/naas-eagles-docker-local/fast/rabbitmq/rabbitmq-publisher"
     # consumer is the image for rabbitmq
     rabbit: "bitnami/rabbitmq"
   # tag is the sub-root of deployment for the values to be set under tag in the deployment.yaml file
   tag:
-    # consumer is the tagged version for consumer.py image
-    consumer: "1.4.0"
-    # publisher is the tagged version for consumer.py image
-    publisher: "1.4.0"
+    # consumer is the tagged version for consume.py image
+    consumer: "1.5.0"
+    # publisher is the tagged version for publish.py image
+    publisher: "1.5.0"
     # rabbit is the tagged version for rabbitmq image
     rabbit: "latest"
 

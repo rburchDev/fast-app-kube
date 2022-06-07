@@ -2,8 +2,8 @@ import asyncio
 from random import randrange
 from pydantic import BaseModel
 from fastapi import APIRouter
-from app.services.rabbitmq.rabb_conn import Broker
-from app.logger import Log
+from src.services.rabbitmq.rabb_conn import Broker
+from src.logger import Log
 
 
 app_route = APIRouter()
