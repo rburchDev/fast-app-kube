@@ -1,0 +1,23 @@
+deployment:
+  image:
+    consumer: "artifactory.charterlab.com/naas-eagles-docker-local/fast/rabbitmq/rabbitmq-consumer"
+    publisher: "artifactory.charterlab.com/naas-eagles-docker-local/fast/rabbitmq/rabbitmq-publisher"
+    rabbit: "bitnami/rabbitmq"
+  tag:
+    consumer: "1.4.0"
+    publisher: "1.4.0"
+    rabbit: "latest"
+name:
+  app: "rabbit-app"
+  secret: "api-secret"
+  container:
+    rabbit: "rabbit-1"
+    publisher: "rabbit-publisher"
+    consumer: "rabbit-consumer"
+  volumes:
+    secret: "secret-volume"
+secret:
+  username: "dXNlcg=="
+  password: "Yml0bmFtaQ=="
+spec:
+  replicas: "1"

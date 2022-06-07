@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name.app }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: {{ .Values.name.app }}
+  ports:
+  - name: rabbit-management
+    protocol: TCP
+    port: 8086
+    targetPort: 15672
+  - name: api
+    protocol: TCP
+    port: 3000
+    targetPort: 3000

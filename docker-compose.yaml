@@ -1,0 +1,31 @@
+version: "3"
+services:
+  rabbitmq-consumer:
+    container_name: consumer
+    image: rburch4/rabbitmq-consumer:1.0.0
+    build:
+      context: app/worker/consumer
+    # command: ./venv/bin/python3 consumer.py
+    environment:
+      - RABBIT_HOST=rabbit-1
+      - RABBIT_PORT=5672
+      - RABBIT_USERNAME=test
+      - RABBIT_PASSWORD=test
+  rabbitmq-publisher:
+    container_name: publisher
+    image: rburch4/rabbitmq-publisher:1.0.0
+
+    build:
+      context: app/worker/publisher
+    # command: ./venv/bin/python3 publisher.py
+    ports:
+      - "3000:3000"
+    environment:
+      - RABBIT_HOST=rabbit-1
+      - RABBIT_PORT=5672
+      - RABBIT_USERNAME=test
+      - RABBIT_PASSWORD=test
+networks:
+  default:
+    name: rabbits
+    external: true
