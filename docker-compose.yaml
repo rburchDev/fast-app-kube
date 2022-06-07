@@ -4,8 +4,8 @@ services:
     container_name: consumer
     image: rburch4/rabbitmq-consumer:1.0.0
     build:
-      context: app/worker/consumer
-    # command: ./venv/bin/python3 consumer.py
+      context: src/worker/consumer
+    # command: ./venv/bin/python3 consume.py
     environment:
       - RABBIT_HOST=rabbit-1
       - RABBIT_PORT=5672
@@ -16,8 +16,8 @@ services:
     image: rburch4/rabbitmq-publisher:1.0.0
 
     build:
-      context: app/worker/publisher
-    # command: ./venv/bin/python3 publisher.py
+      context: src/worker/publisher
+    # command: ./venv/bin/python3 publish.py
     ports:
       - "3000:3000"
     environment:

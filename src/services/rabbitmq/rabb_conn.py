@@ -4,7 +4,7 @@ import os
 from aiormq.abc import AbstractConnection, DeliveredMessage
 from yarl import URL
 from uuid import uuid4
-from app.logger import Log
+from src.logger import Log
 
 
 class Worker:

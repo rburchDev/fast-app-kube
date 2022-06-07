@@ -1,7 +1,7 @@
 import uvicorn
-from .publisher import app_route
+from src.worker.publisher.publish import app_route
 from fastapi import FastAPI
-from app.services.rabbitmq.rabb_conn import Broker
+from src.services.rabbitmq.rabb_conn import Broker
 
 app = FastAPI()
 

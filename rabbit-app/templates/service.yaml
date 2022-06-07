@@ -4,14 +4,21 @@ metadata:
   name: {{ .Values.name.app }}
 spec:
   type: LoadBalancer
+  allocateLoadBalancerNodePorts: false
   selector:
     app: {{ .Values.name.app }}
   ports:
   - name: rabbit-management
     protocol: TCP
+    appProtocol: TCP
     port: 8086
     targetPort: 15672
   - name: api
     protocol: TCP
+    appProtocol: TCP
     port: 3000
     targetPort: 3000
+status:
+  loadBalancer:
+    ingress:
+      - ip: 0.0.0.0
