@@ -1,12 +1,13 @@
 import uvicorn
-from publisher import app_route
+from .publisher import app_route
 from fastapi import FastAPI
-from rabbitmq.rabb_conn import Broker
+from app.services.rabbitmq.rabb_conn import Broker
+
+app = FastAPI()
 
 
 class RyanApp:
     def __init__(self, rabbit_conn: Broker):
-        app = FastAPI()
         app.include_router(app_route, prefix="/v1")
         self.uv_server = uvicorn.Server(
             uvicorn.Config(

@@ -1,0 +1,11 @@
+# created by virtualenv automatically
+
+#Folders to ignore
+/bin
+/lib
+
+.Python
+pyvenv.cfg
+test.py
+
+/Logs

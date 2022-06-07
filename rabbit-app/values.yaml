@@ -1,23 +1,49 @@
+# deployment is the root for values to be set in the deployment.yaml file
 deployment:
+  # image is the sub-root of deployment for the values to be set under image in the deployment.yaml file
   image:
+    # consumer is the image for consumer.py
     consumer: "artifactory.charterlab.com/naas-eagles-docker-local/fast/rabbitmq/rabbitmq-consumer"
+    # consumer is the image for publisher.py
     publisher: "artifactory.charterlab.com/naas-eagles-docker-local/fast/rabbitmq/rabbitmq-publisher"
+    # consumer is the image for rabbitmq
     rabbit: "bitnami/rabbitmq"
+  # tag is the sub-root of deployment for the values to be set under tag in the deployment.yaml file
   tag:
+    # consumer is the tagged version for consumer.py image
     consumer: "1.4.0"
+    # publisher is the tagged version for consumer.py image
     publisher: "1.4.0"
+    # rabbit is the tagged version for rabbitmq image
     rabbit: "latest"
+
+# name is the root for all naming conventions in our template folder
 name:
+  # app is the name of the app
   app: "rabbit-app"
+  # secret is the name of the secret
   secret: "api-secret"
+  # container is the sub-root for the naming of our containers used
   container:
+    # rabbit is the name of the rabbitmq container
     rabbit: "rabbit-1"
+    # publisher is the name of the publisher container
     publisher: "rabbit-publisher"
+    # consumer is the name of the consumer container
     consumer: "rabbit-consumer"
+  # volumes is the sub-root for the naming of our volumes used
   volumes:
+    # secret is the name of the secret volume
     secret: "secret-volume"
+
+# secret is the root for our secret base64 values
 secret:
+  # username is the base64 username for rabbitmq
   username: "dXNlcg=="
+  # password is the base64 password for rabbitmq
   password: "Yml0bmFtaQ=="
+
+# spec is the root for defining spec variables used in our templates
 spec:
+  # replicas is the number of replicas to build
   replicas: "1"

@@ -2,8 +2,8 @@ import asyncio
 from random import randrange
 from pydantic import BaseModel
 from fastapi import APIRouter
-from rabbitmq.rabb_conn import Broker
-from logger import Log
+from app.services.rabbitmq.rabb_conn import Broker
+from app.logger import Log
 
 
 app_route = APIRouter()
@@ -30,13 +30,13 @@ async def main(item: Item) -> dict:
     return {"Status": 200, "Message": item.msg, "Number": item.num}
 
 
-@app_route.post("/v1/random-number")
+@app_route.post("/random-number")
 async def rand(number: Number) -> dict:
     rootlogger.info("Starting rand")
     loop = asyncio.get_event_loop()
     loop.create_task(rpc_publish(number=number, loop=loop))
     rootlogger.info("POST received from API")
-    return {"Status": 200, "Message": ""}
+    return {"Status": 200, "Message": f"Random Number Sent {number.n}"}
 
 
 async def publish(item: Item) -> None:
