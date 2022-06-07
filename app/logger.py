@@ -7,8 +7,12 @@ class Log:
         self.name = name
 
     def logging(self) -> logging:
-        log_dir = os.path.join('var', 'log', f'{self.name}.log')
-
+        if os.path.isdir(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), 'Logs')):
+            pass
+        else:
+            os.mkdir(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), 'Logs'))
+        log_dir = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)),
+                               'Logs', f'{self.name}.log')
         log_formatter = logging.Formatter("%(asctime)s - %(funcName)s:%(lineno)d - [%(levelname)s] %(message)s")
         rootlogger = logging.getLogger()
 

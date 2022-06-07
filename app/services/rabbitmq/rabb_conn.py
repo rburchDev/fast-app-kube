@@ -4,7 +4,7 @@ import os
 from aiormq.abc import AbstractConnection, DeliveredMessage
 from yarl import URL
 from uuid import uuid4
-from logger import Log
+from app.logger import Log
 
 
 class Worker:
@@ -179,16 +179,28 @@ class Broker(Worker):
 
         self.futures[correlation_id] = future
         self.rootlogger.debug(f"Future setup {self.futures}, FUTURE: {future}")
-        await self.start_channel_rpc_publish()
-        self.rootlogger.info("Starting Channel")
-        await self.channel_rpc_publish.basic_publish(
-            body=str(n).encode(), routing_key='rpc_queue',
-            properties=aiormq.spec.Basic.Properties(
-                content_type='text/plain',
-                correlation_id=correlation_id,
-                reply_to=self.callback_queue,
-            ),
-        )
+        try:
+            await self.start_channel_rpc_publish()
+            self.rootlogger.info("Starting Channel")
+            await self.channel_rpc_publish.basic_publish(
+                body=str(n).encode(), routing_key='rpc_queue',
+                properties=aiormq.spec.Basic.Properties(
+                    content_type='text/plain',
+                    correlation_id=correlation_id,
+                    reply_to=self.callback_queue,
+                ))
+        except aiormq.exceptions.ChannelInvalidStateError as e:
+            self.conn_rpc_publish = None
+            self.rootlogger.error(f"Error with channel {e}")
+            await self.start_channel_rpc_publish()
+            self.rootlogger.info("Starting Channel")
+            await self.channel_rpc_publish.basic_publish(
+                body=str(n).encode(), routing_key='rpc_queue',
+                properties=aiormq.spec.Basic.Properties(
+                    content_type='text/plain',
+                    correlation_id=correlation_id,
+                    reply_to=self.callback_queue,
+                ))
         self.rootlogger.info("Message published")
         await self.rpc_reply_consume()
         self.rootlogger.debug(f"Message {int(await future)}")
