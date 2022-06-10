@@ -22,3 +22,7 @@ aiormq>=6.3.3
 pytest>=7.1.2
 httpx>=0.23.0
 trio>=0.20.0
+confluent-kafka>=1.8.2
+dataclasses-avroschema>=0.30.0
+avro-Python3>=1.10.2
+requests==2.28.0
