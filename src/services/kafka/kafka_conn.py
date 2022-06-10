@@ -10,6 +10,7 @@ from src.logger import StartLog
 
 class Computer(AvroModel):
     """Computer Key"""
+
     computer_name: str
 
     class Meta:
@@ -18,6 +19,7 @@ class Computer(AvroModel):
 
 class System(AvroModel):
     """Computer Information"""
+
     system: str
     release: str
     version: str
@@ -30,6 +32,7 @@ class System(AvroModel):
 
 class CreateSchema(ABC):
     """Class to Create Schema for Kafka"""
+
     log = StartLog()
     rootlogger = log.start_logging()
 
@@ -51,20 +54,21 @@ class CreateSchema(ABC):
             self.rootlogger.debug(f"File Found: {self.key_schema}")
         else:
             self.rootlogger.debug(f"File not found, creating {self.key_schema}...")
-            with open(self.key_schema, "w+", encoding='utf-8') as ks:
+            with open(self.key_schema, "w+", encoding="utf-8") as ks:
                 self.ks_json = self.computer.avro_schema_to_python()
                 json.dump(obj=self.ks_json, fp=ks, ensure_ascii=False, indent=4)
         if os.path.isfile(self.value_schema):
             self.rootlogger.debug(f"File Found: {self.value_schema}")
         else:
             self.rootlogger.debug(f"File not found, creating {self.value_schema}...")
-            with open(self.value_schema, "w+", encoding='utf-8') as vs:
+            with open(self.value_schema, "w+", encoding="utf-8") as vs:
                 self.vs_json = self.system.avro_schema_to_python()
                 json.dump(obj=self.vs_json, fp=vs, ensure_ascii=False, indent=4)
 
 
 class KafkaProducer(CreateSchema):
     """Class to Set Up a Producer for Kafka"""
+
     def __init__(self):
         super().__init__(computer=Computer, system=System)
         self.rootlogger.info("Starting Kafka Producer Class...")
@@ -76,11 +80,14 @@ class KafkaProducer(CreateSchema):
         self.value: dict = {}
 
         self.avor_producer: AvroProducer = AvroProducer(
-            {'bootstrap.servers': 'PLAINTEXT://kafka01.daas.charterlab.com:9092',
-             'schema.registry.url': 'http://kafka01.daas.charterlab.com:8081',
-             'receive.message.max.bytes': '15000000000',
-             'security.protocol': 'PLAINTEXT'},
-            default_key_schema=self.load_key_schema, default_value_schema=self.load_value_schema
+            {
+                "bootstrap.servers": "PLAINTEXT://kafka01.daas.charterlab.com:9092",
+                "schema.registry.url": "http://kafka01.daas.charterlab.com:8081",
+                "receive.message.max.bytes": "15000000000",
+                "security.protocol": "PLAINTEXT",
+            },
+            default_key_schema=self.load_key_schema,
+            default_value_schema=self.load_value_schema,
         )
 
         self.msg: str = ""
@@ -92,7 +99,9 @@ class KafkaProducer(CreateSchema):
             self.status = 500
             self.rootlogger.error(f"Status: {self.status} with {self.msg}")
         else:
-            self.msg = f"Produced to: {msg.topic()} [{msg.partition()}] @ {msg.offset()}"
+            self.msg = (
+                f"Produced to: {msg.topic()} [{msg.partition()}] @ {msg.offset()}"
+            )
             self.status = 200
             self.rootlogger.info(f"Status: {self.status} with {self.msg}")
         return {"Status": self.status, "Message": self.msg}
@@ -103,9 +112,14 @@ class KafkaProducer(CreateSchema):
             self.key = {"computer_name": key}
             self.value = value
             self.rootlogger.debug(f"Key: {self.key}, Value: {self.value}")
-        self.avor_producer.produce(topic='ryan_burch', value=self.value, key=self.key,
-                                   key_schema=self.load_key_schema, value_schema=self.load_value_schema,
-                                   callback=self.callback)
+        self.avor_producer.produce(
+            topic="ryan_burch",
+            value=self.value,
+            key=self.key,
+            key_schema=self.load_key_schema,
+            value_schema=self.load_value_schema,
+            callback=self.callback,
+        )
         self.avor_producer.poll(10)
         self.rootlogger.debug("Message was sent succesfully")
         return {"Status": 200, "Message": "Successfully sent Message to Kafka"}
@@ -113,24 +127,27 @@ class KafkaProducer(CreateSchema):
 
 class KafkaConsumer(CreateSchema):
     """Class to Set Up a Consumer for Kafka"""
+
     def __init__(self):
         super().__init__(computer=Computer, system=System)
         self.running: bool = True
 
         self.avro_consumer: AvroConsumer = AvroConsumer(
-            {'bootstrap.servers': 'PLAINTEXT://kafka01.daas.charterlab.com:9092',
-             'schema.registry.url': 'http://kafka01.daas.charterlab.com:8081',
-             'receive.message.max.bytes': '15000000000',
-             'security.protocol': 'PLAINTEXT',
-             'api.version.request': True,
-             'group.id': 'ryan_burch-1'}
+            {
+                "bootstrap.servers": "PLAINTEXT://kafka01.daas.charterlab.com:9092",
+                "schema.registry.url": "http://kafka01.daas.charterlab.com:8081",
+                "receive.message.max.bytes": "15000000000",
+                "security.protocol": "PLAINTEXT",
+                "api.version.request": True,
+                "group.id": "ryan_burch-1",
+            }
         )
 
         self.msg: AvroConsumer.poll = None
         self.return_message: dict = {}
 
     def consumer(self):
-        self.avro_consumer.subscribe(['ryan_burch'])
+        self.avro_consumer.subscribe(["ryan_burch"])
         while self.running:
             try:
                 self.msg = self.avro_consumer.poll(10)
@@ -139,9 +156,12 @@ class KafkaConsumer(CreateSchema):
                         value_json = json.dumps(self.msg.value())
                         vj = json.loads(value_json)
                         self.return_message[self.msg.key()["computer_name"]] = vj
-                        self.return_message[self.msg.key()["computer_name"]].\
-                            update({"Partition": str(self.msg.partition())})
-                        self.return_message[self.msg.key()["computer_name"]].update({"Offset": str(self.msg.offset())})
+                        self.return_message[self.msg.key()["computer_name"]].update(
+                            {"Partition": str(self.msg.partition())}
+                        )
+                        self.return_message[self.msg.key()["computer_name"]].update(
+                            {"Offset": str(self.msg.offset())}
+                        )
                         self.rootlogger.info(f"Consumed Message: {self.return_message}")
                         self.avro_consumer.commit()
                     elif self.msg.error().code() != KafkaError._PARTITION_EOF:
@@ -149,7 +169,9 @@ class KafkaConsumer(CreateSchema):
                 else:
                     self.rootlogger.debug("No Message in Kafka... Trying again....")
             except SerializerError as se:
-                self.rootlogger.error(f"Message deserialization error for {self.msg}: {se}")
+                self.rootlogger.error(
+                    f"Message deserialization error for {self.msg}: {se}"
+                )
                 self.running = False
         self.avro_consumer.commit()
         self.avro_consumer.close()

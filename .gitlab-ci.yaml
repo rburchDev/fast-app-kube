@@ -1,0 +1,8 @@
+include:
+  - 'cicd/templates/build/*.yaml'
+  - 'cicde/templates/*.yaml'
+
+image: artifactory.charterlab.com/naas-eagles-docker-local/artifactory-pkg-base:latest
+
+stages:
+  - build

@@ -62,9 +62,11 @@ async def kafka_message(kafka: Kafka) -> dict:
 
 async def publish(item: Item) -> None:
     rootlogger.info("Starting Publisher...")
-    await rabbitmq.send_message(body=f"Message: {item.msg} Number: {item.num}".encode(),
-                                routing_key="rabbit",
-                                exchange='api')
+    await rabbitmq.send_message(
+        body=f"Message: {item.msg} Number: {item.num}".encode(),
+        routing_key="rabbit",
+        exchange="api",
+    )
     rootlogger.debug("Message Sent...")
 
 
@@ -78,25 +80,36 @@ async def kafka_publish(kafka: Kafka) -> None:
     rootlogger.info("Starting Publisher...")
     if kafka.system == "Linux":
         command = 'cat /proc/cpuinfo | grep "model name" | head -1 | cut -d : -f 2'
-        kafka.processor = subprocess.Popen(command, shell=True,
-                                           stdout=subprocess.PIPE).communicate()[0].decode().strip()
+        kafka.processor = (
+            subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+            .communicate()[0]
+            .decode()
+            .strip()
+        )
     elif kafka.system == "Windows":
         kafka.processor = platform.processor()
     else:
-        kafka.processor = subprocess.Popen(['/usr/sbin/sysctl', "-n", "machdep.cpu.brand_string"],
-                                           stdout=subprocess.PIPE).communicate()[0].decode().strip()
+        kafka.processor = (
+            subprocess.Popen(
+                ["/usr/sbin/sysctl", "-n", "machdep.cpu.brand_string"],
+                stdout=subprocess.PIPE,
+            )
+            .communicate()[0]
+            .decode()
+            .strip()
+        )
     message_json = {
         kafka.computer_name: {
             "system": kafka.system,
             "release": kafka.release,
             "version": kafka.version,
             "machine": kafka.machine,
-            "processor": kafka.processor
+            "processor": kafka.processor,
         }
     }
     message_dump = json.dumps(message_json)
     rootlogger.debug(f"Sending: {message_dump}")
-    await rabbitmq.send_message(body=message_dump.encode(),
-                                routing_key="kafka",
-                                exchange="api")
+    await rabbitmq.send_message(
+        body=message_dump.encode(), routing_key="kafka", exchange="api"
+    )
     rootlogger.info("Message Sent...")
