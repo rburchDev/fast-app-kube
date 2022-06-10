@@ -22,6 +22,8 @@ COPY        ./worker/__init__.py /rabbit/src/worker/
 COPY        ./worker/consumer/__init__.py /rabbit/src/worker/consumer/
 COPY        ./worker/consumer/consume.py /rabbit/src/worker/consumer/
 COPY        ./services/__init__.py /rabbit/src/services/
+COPY        ./services/kafka/__init__.py /rabbit/src/services/kafka/
+COPY        ./services/kafka/kafka_conn.py /rabbit/src/services/kafka/
 COPY        ./services/rabbitmq/__init__.py /rabbit/src/services/rabbitmq/
 COPY        ./services/rabbitmq/rabb_conn.py /rabbit/src/services/rabbitmq/
 COPY        logger.py /rabbit/src/

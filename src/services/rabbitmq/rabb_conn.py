@@ -1,15 +1,19 @@
 import asyncio
 import aiormq
 import os
+import json
+import time
 from aiormq.abc import AbstractConnection, DeliveredMessage
+from aiormq.base import Base
 from yarl import URL
 from uuid import uuid4
-from src.logger import Log
+from src.logger import StartLog
+from src.services.kafka.kafka_conn import KafkaProducer
 
 
 class Worker:
-    log = Log(name="RabbitMQ")
-    rootlogger = log.logging()
+    log = StartLog()
+    rootlogger = log.start_logging()
 
     def __init__(self,
                  rabbit_server: str,
@@ -42,10 +46,19 @@ class Worker:
                                                     self.channel_rpc_consume, self.declare_ok_rpc_consume,
                                                     self.conn_rpc_publish, self.channel_rpc_publish,
                                                     self.declare_ok_rpc_publish, self.callback_queue]}
+
+        self.kc = KafkaProducer()
+
         self.rootlogger.debug(f"INIT data for Worker: {self.data}")
 
     async def on_message(self, message: DeliveredMessage) -> None:
         self.rootlogger.info(f"Received message: {message.body.decode()}")
+        if message.routing_key == "rabbit":
+            self.rootlogger.debug("Received message with rabbit routing key...")
+        elif message.routing_key == "kafka":
+            self.rootlogger.debug("Received message with kafka routing key...")
+            kc_json = json.loads(message.body.decode())
+            self.kc.producer(message=kc_json)
         await message.channel.basic_ack(message.delivery_tag)
 
     async def rpc_on_message(self, message: DeliveredMessage) -> None:
@@ -80,8 +93,8 @@ class Worker:
         return await aiormq.connect(url=self.url)
 
     async def start_channel(self) -> tuple:
-        self.rootlogger.info(f"Connection: {self.conn} Channel: {self.channel}")
-        if self.conn is None:
+        self.rootlogger.info(f"Connection: {self.conn} Channel: {self.channel} BaseClosed: {Base.is_closed}")
+        if self.conn is None or Base.is_closed:
             self.conn = await self.start_connections()
             self.channel = await self.conn.channel()
             await self.channel.basic_qos(prefetch_count=1)
@@ -93,7 +106,7 @@ class Worker:
         return self.channel, self.declare_ok
 
     async def start_channel_rpc_consume(self) -> aiormq:
-        if self.conn_rpc_consume is None:
+        if self.conn_rpc_consume is None or Base.is_closed:
             self.conn_rpc_consume = await self.start_connections()
             self.channel_rpc_consume = await self.conn_rpc_consume.channel()
 
@@ -102,7 +115,7 @@ class Worker:
         return self.declare_ok_rpc_consume
 
     async def start_channel_rpc_publish(self) -> tuple:
-        if self.conn_rpc_publish is None:
+        if self.conn_rpc_publish is None or Base.is_closed:
             self.conn_rpc_publish = await self.start_connections()
             self.channel_rpc_publish = await self.conn_rpc_publish.channel()
 
@@ -142,11 +155,26 @@ class Broker(Worker):
         except aiormq.exceptions.ChannelInvalidStateError as e:
             self.conn = None
             self.rootlogger.error(f"Error with channel {e}")
-            channel, declare_ok = await self.start_channel()
-            consume_ok = await channel.basic_consume(
-                queue=declare_ok.queue, no_ack=no_ack, consumer_callback=self.on_message
+            await self.start_channel()
+            consume_ok = await self.channel.basic_consume(
+                queue=self.declare_ok.queue, no_ack=no_ack, consumer_callback=self.on_message
             )
-        print(consume_ok)
+        except ConnectionError as ce:
+            self.rootlogger.warning(f"Connection Error: {ce}... Waiting 10 seconds and trying again...")
+            time.sleep(10)
+            try:
+                await self.start_channel()
+                consume_ok = await self.channel.basic_consume(
+                    queue=self.declare_ok.queue, no_ack=no_ack, consumer_callback=self.on_message
+                )
+            except ConnectionError as ce2:
+                self.rootlogger.warning(f"Connection Error: {ce2}... Waiting 20 seconds and trying again...")
+                time.sleep(20)
+                await self.start_channel()
+                consume_ok = await self.channel.basic_consume(
+                    queue=self.declare_ok.queue, no_ack=no_ack, consumer_callback=self.on_message
+                )
+        self.rootlogger.debug(consume_ok)
 
     async def rpc_consume(self) -> None:
         try:
@@ -159,6 +187,19 @@ class Broker(Worker):
             await self.start_channel_rpc_consume()
             await self.channel_rpc_consume.basic_consume(queue=self.declare_ok_rpc_consume.queue,
                                                          consumer_callback=self.rpc_on_message)
+        except ConnectionError as ce:
+            self.rootlogger.warning(f"Connection Error: {ce}... Waiting 10 seconds and trying again...")
+            time.sleep(10)
+            try:
+                await self.start_channel_rpc_consume()
+                await self.channel_rpc_consume.basic_consume(queue=self.declare_ok_rpc_consume.queue,
+                                                             consumer_callback=self.rpc_on_message)
+            except ConnectionError as ce2:
+                self.rootlogger.warning(f"Connection Error: {ce2}... Waiting 20 seconds and trying again...")
+                time.sleep(20)
+                await self.start_channel_rpc_consume()
+                await self.channel_rpc_consume.basic_consume(queue=self.declare_ok_rpc_consume.queue,
+                                                             consumer_callback=self.rpc_on_message)
 
     async def rpc_reply_consume(self) -> None:
         try:
