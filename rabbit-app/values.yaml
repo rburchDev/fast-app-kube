@@ -3,9 +3,9 @@ deployment:
   # image is the sub-root of deployment for the values to be set under image in the deployment.yaml file
   image:
     # consumer is the image for consume.py
-    consumer: "rburch4/rabbitmq-consumer"
+    consumer: "PATH_C"
     # publisher is the image for publish.py
-    publisher: "rburch4/rabbitmq-publisher"
+    publisher: "PATH_P"
     # consumer is the image for rabbitmq
     rabbit: "bitnami/rabbitmq"
   # tag is the sub-root of deployment for the values to be set under tag in the deployment.yaml file
