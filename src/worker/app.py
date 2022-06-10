@@ -15,12 +15,7 @@ class RyanApp:
     def __init__(self, rabbit_conn: Broker):
         app.include_router(app_route, prefix="/v1")
         self.uv_server = uvicorn.Server(
-            uvicorn.Config(
-                app=app,
-                host="0.0.0.0",
-                port=3000,
-                log_level='debug'
-            )
+            uvicorn.Config(app=app, host="0.0.0.0", port=3000, log_level="debug")
         )
         self.rabbit_conn = rabbit_conn
 
@@ -29,12 +24,16 @@ class RyanApp:
             try:
                 channel = await self.rabbit_conn.start_channel()
             except ConnectionError as ce:
-                self.rootlogger.warn(f"Connection Error: {ce}... Waiting 10 seconds and trying again...")
+                self.rootlogger.warn(
+                    f"Connection Error: {ce}... Waiting 10 seconds and trying again..."
+                )
                 time.sleep(10)
                 try:
                     channel = await self.rabbit_conn.start_channel()
                 except ConnectionError as ce2:
-                    self.rootlogger.warn(f"Connection Error: {ce2}... Waiting 20 seconds and trying again...")
+                    self.rootlogger.warn(
+                        f"Connection Error: {ce2}... Waiting 20 seconds and trying again..."
+                    )
                     time.sleep(20)
                     channel = await self.rabbit_conn.start_channel()
             return channel

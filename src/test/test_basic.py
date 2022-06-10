@@ -6,7 +6,7 @@ from abc import ABC
 class Base(ABC):
     @pytest.fixture(scope="class", autouse=False)
     def url(self, request) -> str:
-        self.url = 'http://localhost:3000'
+        self.url = "http://localhost:3000"
         request.cls.url = self.url
         yield self.url
 
@@ -41,9 +41,15 @@ class TestAPI(Base):
     @pytest.mark.anyio
     async def test_info_call(self):
         async with AsyncClient(base_url=self.url) as ac:
-            response = await ac.post(self.info, json={"msg": "PYTEST TEST MESSAGE", "num": 5})
+            response = await ac.post(
+                self.info, json={"msg": "PYTEST TEST MESSAGE", "num": 5}
+            )
         assert response.status_code == 200
-        assert response.json() == {"Status": 200, "Message": "PYTEST TEST MESSAGE", "Number": 5}
+        assert response.json() == {
+            "Status": 200,
+            "Message": "PYTEST TEST MESSAGE",
+            "Number": 5,
+        }
 
     @pytest.mark.anyio
     async def test_rand_call(self):

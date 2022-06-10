@@ -1,0 +1,10 @@
+compile:
+  stage: build
+  extends:
+    - .setup
+  scripts:
+    - echo "Starting Build Pipe"
+    - make venv/bin/activate
+    - make venv/bin/activate-test
+    - make black-check
+    - make lint
