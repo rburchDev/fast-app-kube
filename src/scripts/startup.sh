@@ -71,7 +71,7 @@ echo --------
 ##   Kube   ##
 ###############
 echo UPDATING HELM CHART INSTALLED
-helm upgrade rabbit-app ../rabbit-app --values ../rabbit-app/values.yaml --set deployment.tag.consumer="${version}" --set deployment.tag.publisher="${version}" --set appVersion="${version}"
+helm upgrade rabbit-app ../rabbit-app --values ../rabbit-app/values.yaml --set deployment.tag.consumer="${version}" --set deployment.tag.publisher="${version}" --set appVersion="${version}" --set deployment.image.consumer="${file_c}" --set deployment.image.publisher="${file_p}"
 # shellcheck disable=SC2181
 if [[ $? -eq 0 ]]; then
   echo SUCCESS
